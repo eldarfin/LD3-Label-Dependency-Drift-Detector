@@ -1,8 +1,8 @@
 import numpy as np
 import util
 
-class DriftDetector():
-    def __init__(self, k, label_window_size=100, detection_window_size=2, max_window_size=2, label_count=10000, sudden_drift=False, big_dataset=False):
+class LD3():
+    def __init__(self, k=, label_window_size=100, detection_window_size=2, max_window_size=2, label_count=10000, big_dataset=False):
         self.history = []
         self.detection_window_size = detection_window_size
         self.max_window_size = max_window_size
@@ -10,7 +10,6 @@ class DriftDetector():
         self.label_window_size = label_window_size
         self.labels = []
         self.warmup = True
-        self.sudden_drift = sudden_drift
         self.label_count = label_count
         self.big_dataset = big_dataset
 
@@ -68,6 +67,4 @@ class DriftDetector():
                     if self.warmup:
                         print('Warmup has ended')
                         self.warmup = False
-            if self.sudden_drift:
-                self.labels = []
             return False
