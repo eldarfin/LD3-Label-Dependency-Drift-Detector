@@ -1,0 +1,191 @@
+Gradual
+Stream progress: 14966/9000
+Accuracy of LD3: 0.17893892823733798
+Hamming score of LD3: 0.9444006414539624
+F1-ex of LD3: 0.22803145708731704
+F1-micro of LD3: 0.2684192016880605
+
+Accuracy of ADWIN: 0.19530936790057463
+Hamming score of ADWIN: 0.9470733662969397
+F1-ex of ADWIN: 0.21968538870516685
+F1-micro of ADWIN: 0.263676504764118
+
+Accuracy of DDM: 0.1954430041427235
+Hamming score of DDM: 0.9461629693973006
+F1-ex of DDM: 0.22306423734995162
+F1-micro of DDM: 0.2662386449013046
+
+Accuracy of EDDM: 0.19236937057329948
+Hamming score of EDDM: 0.9459441400507818
+F1-ex of EDDM: 0.2245064917338738
+F1-micro of EDDM: 0.2670109631240373
+
+Accuracy of PageHinkley: 0.20058799946545502
+Hamming score of PageHinkley: 0.9462949351864225
+F1-ex of PageHinkley: 0.22792654857324973
+F1-micro of PageHinkley: 0.2700481336844973
+
+Accuracy of HDDM_A: 0.18856073767205667
+Hamming score of HDDM_A: 0.9454546973139115
+F1-ex of HDDM_A: 0.21918531473516584
+F1-micro of HDDM_A: 0.26289532495090184
+
+Accuracy of HDDM_W: 0.1920352799679273
+Hamming score of HDDM_W: 0.9458155151677134
+F1-ex of HDDM_W: 0.2192971310808584
+F1-micro of HDDM_W: 0.26187279553987935
+
+Accuracy of KSWIN: 0.2029934518241347
+Hamming score of KSWIN: 0.9473155819858345
+F1-ex of KSWIN: 0.22407479436352726
+F1-micro of KSWIN: 0.2688982127541204
+
+Accuracy of No Detector: 0.152545770412936
+Hamming score of No Detector: 0.941246826139249
+F1-ex of No Detector: 0.21134741207238866
+F1-micro of No Detector: 0.24900713157108081
+
+
+
+
+Sudden
+Accuracy of LD3: 0.2135475698379892
+Hamming score of LD3: 0.9468347889859323
+F1-ex of LD3: 0.23948494760715575
+F1-micro of LD3: 0.2803185848694749
+
+Accuracy of ADWIN: 0.20774718314554302
+Hamming score of ADWIN: 0.9483848923261551
+F1-ex of ADWIN: 0.24242409774445242
+F1-micro of ADWIN: 0.2845128347311754
+
+Accuracy of DDM: 0.2145476365091006
+Hamming score of DDM: 0.9469747983198881
+F1-ex of DDM: 0.23920320702772865
+F1-micro of DDM: 0.28065573770491803
+
+Accuracy of EDDM: 0.2071471431428762
+Hamming score of EDDM: 0.9465864390959398
+F1-ex of EDDM: 0.24042228522860565
+F1-micro of EDDM: 0.28202715418739077
+
+Accuracy of PageHinkley: 0.20681378758583904
+Hamming score of PageHinkley: 0.9465597706513768
+F1-ex of PageHinkley: 0.238394090112538
+F1-micro of PageHinkley: 0.2802819430726407
+
+Accuracy of HDDM_A: 0.20681378758583904
+Hamming score of HDDM_A: 0.9471964797653177
+F1-ex of HDDM_A: 0.23823633271263114
+F1-micro of HDDM_A: 0.28117625703394444
+
+Accuracy of HDDM_W: 0.19894659643976265
+Hamming score of HDDM_W: 0.9459197279818655
+F1-ex of HDDM_W: 0.22859882445772278
+F1-micro of HDDM_W: 0.2723154211895577
+
+Accuracy of KSWIN: 0.21788119207947196
+Hamming score of KSWIN: 0.9482098806587105
+F1-ex of KSWIN: 0.24852850662904666
+F1-micro of KSWIN: 0.28870982510759086
+
+Accuracy of No Detector: 0.17041136075738383
+Hamming score of No Detector: 0.9427961864124275
+F1-ex of No Detector: 0.2331238432878542
+F1-micro of No Detector: 0.2699115044247788
+
+
+
+
+
+Testing: Slashdot.arff with k=3
+Drift detected with DDM at: 113
+Warmup has ended 119/3782
+Drift detected with EDDM at: 206
+Drift detected with LD3 at: 240
+Warmup noiseess: 279/3782
+Warmup noiseess: 319/3782
+Warmup noiseess: 359/3782
+Warmup has ended 399/3782
+Drift detected with EDDM at: 539
+Drift detected with EDDM at: 651
+Drift detected with EDDM at: 767
+Drift detected with HDDM_W at: 812
+Drift detected with DDM at: 818
+Drift detected with HDDM_A at: 819
+Drift detected with PageHinkley at: 828
+Drift detected with ADWIN at: 832
+Drift detected with EDDM at: 853
+Drift detected with EDDM at: 936
+Drift detected with EDDM at: 1041
+Drift detected with EDDM at: 1148
+Drift detected with EDDM at: 1355
+Drift detected with ADWIN at: 1376
+Drift detected with EDDM at: 1465
+Drift detected with EDDM at: 1589
+Drift detected with HDDM_W at: 2181
+Drift detected with EDDM at: 2268
+Drift detected with ADWIN at: 2272
+Drift detected with EDDM at: 2420
+Drift detected with EDDM at: 2513
+Drift detected with EDDM at: 2637
+Drift detected with LD3 at: 2640
+Warmup noiseess: 2679/3782
+Warmup noiseess: 2719/3782
+Warmup has ended 2759/3782
+Drift detected with HDDM_W at: 2829
+Drift detected with LD3 at: 2840
+Drift detected with DDM at: 2843
+Drift detected with PageHinkley at: 2862
+Drift detected with EDDM at: 2865
+Warmup noiseess: 2879/3782
+Warmup noiseess: 2919/3782
+Drift detected with EDDM at: 2942
+Warmup noiseess: 2959/3782
+Warmup has ended 2999/3782
+Drift detected with EDDM at: 3067
+Stream progress: 3782/3782
+Accuracy of LD3: 0.3046007403490217
+Hamming score of LD3: 0.9444137301091294
+F1-ex of LD3: 0.42138860878543133
+F1-micro of LD3: 0.4519492830904136
+
+Accuracy of ADWIN: 0.30962453728186146
+Hamming score of ADWIN: 0.9447382337387625
+F1-ex of ADWIN: 0.42170353049587095
+F1-micro of ADWIN: 0.4535298312336582
+
+Accuracy of DDM: 0.3178212585933369
+Hamming score of DDM: 0.9463487332339792
+F1-ex of DDM: 0.42397740340627704
+F1-micro of DDM: 0.4585152838427948
+
+Accuracy of EDDM: 0.30116340560549976
+Hamming score of EDDM: 0.9455074275275227
+F1-ex of EDDM: 0.4054250291690799
+F1-micro of EDDM: 0.4453144115488133
+
+Accuracy of PageHinkley: 0.31544156530936013
+Hamming score of PageHinkley: 0.9457598192394596
+F1-ex of PageHinkley: 0.42846463425522124
+F1-micro of PageHinkley: 0.46100561328078343
+
+Accuracy of HDDM_A: 0.32310946589106293
+Hamming score of HDDM_A: 0.9463607518869285
+F1-ex of HDDM_A: 0.4410024930120118
+F1-micro of HDDM_A: 0.4701412798290395
+
+Accuracy of HDDM_W: 0.3030142781597039
+Hamming score of HDDM_W: 0.9452430171626364
+F1-ex of HDDM_W: 0.4177545264536275
+F1-micro of HDDM_W: 0.4539789069990412
+
+Accuracy of KSWIN: 0.30327868852459017
+Hamming score of KSWIN: 0.9412408057304937
+F1-ex of KSWIN: 0.4313162599783435
+F1-micro of KSWIN: 0.447008256984504
+
+Accuracy of No Detector: 0.30327868852459017
+Hamming score of No Detector: 0.9412408057304937
+F1-ex of No Detector: 0.4313162599783435
+F1-micro of No Detector: 0.447008256984504
