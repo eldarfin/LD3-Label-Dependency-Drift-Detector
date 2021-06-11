@@ -4,11 +4,13 @@ import util
 from scipy import stats
 from river.base import DriftDetector
 from scipy.spatial import distance
+from sklearn.neighbors import KernelDensity
+import matplotlib.pyplot as plt
 import time
 
 
 class LD3(DriftDetector):
-    def __init__(self, k=2, window_size = 250, correlation_thresh=0.05, relax_threshold=0.2, max_window_size=1000, correlation_coeff=5):
+    def __init__(self, k=2, window_size = 250, correlation_thresh=0.05, bandwith=0.1, max_window_size=1000, correlation_coeff=5):
         super().__init__()
         self.k = k
         self.window_size = window_size
@@ -16,14 +18,14 @@ class LD3(DriftDetector):
         self.initial_window_size = window_size
         self.w1 = Window(max_size=window_size)
         self.w2 = Window(max_size=window_size)
-        self.w3 = Window(max_size=100)
+        self.w3 = Window(max_size=window_size)
+        self.model = KernelDensity(bandwidth=bandwith, kernel='gaussian')
         self.warmup = True
         self.warmup_count = window_size * 2
         self.r1 = None
         self.r2 = None
         self.correlation_thresh = correlation_thresh
         self.past_correlation = None
-        self.relax_threshold = relax_threshold
         self.cum_sum = 0
         self.count = 0
         self.max_dist = 0
@@ -36,43 +38,50 @@ class LD3(DriftDetector):
         if not self.warmup:
             self.r1 = util.recip_rank(util.to_numpy_matrix(self.w1.get_window, self_loops=False))
             self.r2 = util.recip_rank(util.to_numpy_matrix(self.w2.get_window, self_loops=False))
-            #self.count += 1
 
-            #drift, warning = self.detect_change()
+
             drift, warning = False, False
-            correlation= self.WS()#stats.spearmanr(self.r1, self.r2)#self.rank_correlation()
-            #self.cum_sum += correlation
-            if self.average_correlation == None:
+            correlation= self.WS()
+            self.w3.queue(correlation)
+
+            if self.w3.len < self.window_size:
+                return False, False, 0, 0
+
+            self.model.fit((self.w3.get_window).reshape((self.w3.len, 1)))
+            '''if self.average_correlation == None:
                 self.average_correlation = correlation
             else:
-                self.average_correlation = 0.875 * self.average_correlation + 0.125 * correlation
+                self.average_correlation = 0.875 * self.average_correlation + 0.125 * correlation'''
 
-            if self.prev_correlation == None:
-                self.prev_correlation = correlation
-                return False, False, 0
-
-            
-            if correlation < self.correlation_thresh: #self.correlation_thresh:# and correlation > self.correlation_thresh-5e-2: #correlation > self.correlation_thresh and correlation < self.correlation_thresh+5e-2 and correlation / self._average_correlation > self.correlation_coeff: # and correlation > 1.5*self.prev_correlation: #self.count > 1500:
-                drift = True #and correlation < self.correlation_thresh+5e-6
+            score = np.exp(self.model.score([[correlation]]))
+            if  score < self.correlation_thresh: #correlation < self.correlation_thresh: 
+                drift = True
                 warning = True
                 
             '''if self.count >= 194 and self.count <=205:
                 print('Correlation: ', correlation)'''
 
             if drift:
+                values = np.asarray([value for value in np.linspace(-1,1,100)])
+                values = values.reshape((len(values), 1))
+                probabilities = self.model.score_samples(values)
+                probabilities = np.exp(probabilities)
+                # plot the histogram and pdf
+                plt.hist(self.w3.get_window, bins=36, density=True)
+                plt.plot(values[:], probabilities)
+                plt.show()
                 self.clear_windows()
                 #self.increase_windows(self.window_size*2)
                 self.warmup_counter(warmup_count=self.window_size*2)
                 print('Correlation: ', correlation)
-                print('Average correlation: ', self._average_correlation)
-                #self.cum_sum = 0
-                #self.count = 0
+                print('Score: ', np.exp(self.model.score([[correlation]])))
+ 
             
             self.prev_correlation = correlation
 
-            return drift, warning, correlation
+            return drift, warning, correlation, score
 
-        return False, False, 0
+        return False, False, 0, 0
 
 
     '''def rank_correlation(self,k=0.1):
@@ -137,6 +146,7 @@ class LD3(DriftDetector):
         #self.w2.set_window(self.w1.get_window.tolist())
         self.w1.clear()
         self.w2.clear()
+        self.w3.clear()
 
     def increase_windows(self, value):
         if value < self.max_window_size:
@@ -149,25 +159,6 @@ class LD3(DriftDetector):
             self.window_size = value
             self.w1.decrease_size(value)
             self.w2.decrease_size(value) 
-
-    def detect_change(self):
-        # EXPERIMENT WITH:
-        #
-        # KENDALL TAU
-        # WEIGHTED TAU
-        # SPEARMANR
-        # PEARSONR
-        # SOMERS'D
-        # GOODMAN AND KRUSKAL'S GAMMA
-
-        warning_margin = self.k // 2
-        r1 = self.r1[:self.k]
-        r2 = self.r2[:self.k]
-        for rank in r2:
-            if rank not in r1:
-                warning_margin -= 1
-        
-        return warning_margin < 0, False
     
     @property
     def _ranks(self):
@@ -177,22 +168,6 @@ class LD3(DriftDetector):
     def _average_correlation(self):
         return self.average_correlation #self.cum_sum / self.count if self.count > 0 else 0
 
-
-    def aptau(self, l1, l2):
-        ci_sum = 0
-        for i in range(1,len(l1)):
-            item_x = l1[i]
-            l_x = l1[:i]
-            l_y = l2[:np.where(l2==item_x)[0][0]]
-            ci = 0
-            for j in range(len(l_x)):
-                if l_x[j] in l_y:
-                    ci += 1
-            ci_sum += (ci/i)
-        return ((2 * ci_sum) / (len(l2) - 1)) - 1
-    
-    def symmaptau(self, l1, l2):
-        return (self.aptau(l1, l2) + self.aptau(l2, l1)) / 2
 
 class Window():
     def __init__(self, max_size=250):
@@ -229,3 +204,7 @@ class Window():
     @property
     def get_window(self):
         return np.array(self.window)
+    
+    @property 
+    def len(self):
+        return len(self.window)
