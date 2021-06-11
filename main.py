@@ -13,6 +13,7 @@ from skmultiflow.drift_detection import ADWIN, EDDM, KSWIN, HDDM_W, HDDM_A, DDM,
 import util
 import warnings
 import matplotlib.pyplot as plt
+from tqdm.notebook import tqdm, trange
 
 warnings.filterwarnings('ignore')
 
@@ -21,7 +22,7 @@ warnings.filterwarnings('ignore')
            ('Enron.arff', 53, 7, 200, 50, False, 2000, False), ('Yahoo_Health.arff', 32, 4, 1000, 100, False, 20000, False), ('Bibtex.arff', 159, 3, 2500, 75, False, 20000, False),
            ('tmc2007-500.arff', 22, 6, 2500, 100, True, 10000, False), ('Mediamill.arff', 101, 20, 3000, 100, True, 10000, False), ('20NG.arff', 20, 2, 2000, 100, True, 10000, False),
            ('Slashdot.arff', 22, 3, 750, 40, False, 20000, False)]'''
-datasets = [('Synthetic', 20, 1, 500, 500, True)]#('Scene.arff', 6, 2, 100, 100, False)]
+datasets = [('20NG.arff', 20, 2, 500, 1000, False)] #('Synthetic', 60, 1, 500, 500, True)]#('Scene.arff', 6, 2, 100, 100, False)]
 ks = []
 for dataset, label_count, k, pretrain_size, window_size, sudden in datasets:
     print('Testing: {} with k={}'.format(dataset, k))
@@ -56,8 +57,8 @@ for dataset, label_count, k, pretrain_size, window_size, sudden in datasets:
 
     #detectors = [LD3(k=k, window_size=window_size), ADWIN(), DDM(), EDDM(), PageHinkley(), HDDM_A(), HDDM_W(), KSWIN(), None]
     #detector_names = ['LD3', 'ADWIN', 'DDM', 'EDDM', 'PageHinkley', 'HDDM_A', 'HDDM_W', 'KSWIN', 'No Detector']
-    detectors = [LD3(k=k, window_size=window_size)]
-    detector_names = ['LD3']
+    detectors = [LD3(k=k, window_size=window_size), ADWIN()]
+    detector_names = ['LD3', 'ADWIN']
     clfs = [ClassifierChain(SGDClassifier(n_jobs=-1, loss='hinge',  random_state=1, warm_start=True), random_state=1) for det in detectors]
     pre_sample = [np.zeros(X.shape[1]), np.zeros(X.shape[1])]
     pre_label = [np.ones(y.shape[1]), np.zeros(y.shape[1])]
@@ -75,8 +76,10 @@ for dataset, label_count, k, pretrain_size, window_size, sudden in datasets:
     drifts = [False for det in detectors]
     pretrain_X = []
     pretrain_y = []
+    p_bar = tqdm(total=sample_size)
 
     while stream.has_more_samples():
+        p_bar.update(1)
         if count == 6000:
             print('6000 Here')
         for i, drift in enumerate(drifts):
@@ -123,8 +126,9 @@ for dataset, label_count, k, pretrain_size, window_size, sudden in datasets:
             if detector != None:
                 drifts[i] = detector.detected_change()
 
-        print('Stream progress: {}/{}'.format(count, sample_size), end='\r', flush=True)
-    print('Stream progress: {}/{}'.format(count, sample_size))
+    p_bar.close()
+        #print('Stream progress: {}/{}'.format(count+1, sample_size), end='\r', flush=True)
+    #print('Stream progress: {}/{}'.format(count+1, sample_size))
     '''graph = detectors[0].debug
     cnt = detectors[0].count
     labels = [39, 8, 7, 17, 21, 15, 36, 19, 30]

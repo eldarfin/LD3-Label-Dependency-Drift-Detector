@@ -71,34 +71,53 @@ class LD3():
             print()
             if len(self.prev) < 1:
                 r = self.recip_rank(util.to_numpy_matrix(self.labels))[:self.k]
+                #r = np.flip(np.argsort(util.to_numpy_matrix(self.labels).sum(axis=0)))[:self.k]
                 for item in r:
                     self.add_to_history(item)
-                print(list(sorted(self.history.items(), key=operator.itemgetter(1),reverse=True)))
+                #print(list(sorted(self.history.items(), key=operator.itemgetter(1),reverse=True)))
                 #self.prev = r
                 self.prev = np.array(list(sorted(self.history.items(), key=operator.itemgetter(1),reverse=True))[:self.k])[:,0]
                 self.labels = []   
             else:
                 r = self.recip_rank(util.to_numpy_matrix(self.labels))[:self.k]
+                #r = np.flip(np.argsort(util.to_numpy_matrix(self.labels).sum(axis=0)))[:self.k]
                 for item in r:
                     self.add_to_history(item)
                 
                 #diff = np.setdiff1d(r, self.prev)
                 current_hist = np.array(list(sorted(self.history.items(), key=operator.itemgetter(1),reverse=True)))
-                if current_hist[0][1] <= current_hist[1][1] and self.warmup:
-                    print('Warmup')
-                    print(list(sorted(self.history.items(), key=operator.itemgetter(1),reverse=True)))
-                    print(r)
-                    self.labels = []
-                    self.prev = current_hist[:self.k][:, 0]
-                    return False
-                elif current_hist[0][1] > current_hist[1][1] and self.warmup:
-                    print('Warmup ended')
-                    print(list(sorted(self.history.items(), key=operator.itemgetter(1),reverse=True)))
-                    print(r)
-                    self.labels = []
-                    self.prev = current_hist[:self.k][:, 0]
-                    self.warmup = False
-                    return False
+                if len(current_hist) > 1:
+                    if current_hist[0][1] <= current_hist[1][1] and self.warmup:
+                        print('Warmup')
+                        #print(list(sorted(self.history.items(), key=operator.itemgetter(1),reverse=True)))
+                        print(r)
+                        self.labels = []
+                        self.prev = current_hist[:self.k][:, 0]
+                        return False
+                    elif current_hist[0][1] > current_hist[1][1] and self.warmup:
+                        print('Warmup ended')
+                        #print(list(sorted(self.history.items(), key=operator.itemgetter(1),reverse=True)))
+                        print(r)
+                        self.labels = []
+                        self.prev = current_hist[:self.k][:, 0]
+                        self.warmup = False
+                        return False
+                else:
+                    if current_hist[0][1] > 1:
+                        print('Warmup ended')
+                        #print(list(sorted(self.history.items(), key=operator.itemgetter(1),reverse=True)))
+                        print(r)
+                        self.labels = []
+                        self.prev = current_hist[:self.k][:, 0]
+                        self.warmup = False
+                        return False
+                    else:
+                        print('Warmup')
+                        #print(list(sorted(self.history.items(), key=operator.itemgetter(1),reverse=True)))
+                        print(r)
+                        self.labels = []
+                        self.prev = current_hist[:self.k][:, 0]
+                        return False
                     
 
                 if r[0] != self.prev[0]:
@@ -108,8 +127,8 @@ class LD3():
                 else:
                     self.decrease_rate = 0
                 
-                print(list(sorted(self.history.items(), key=operator.itemgetter(1),reverse=True)))
-                print(r)
+                #print(list(sorted(self.history.items(), key=operator.itemgetter(1),reverse=True)))
+                #print(r)
 
                 diff = np.setdiff1d(current_hist[:self.k][:, 0], self.prev)
                 self.labels = []

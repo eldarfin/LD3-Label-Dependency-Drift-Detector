@@ -1,10 +1,21 @@
 import numpy as np 
 import pandas as pd 
 from ast import literal_eval
+from scipy.spatial import distance
 from skmultilearn.dataset import load_dataset
 import matplotlib.pyplot as plt
 import operator
+import scipy
+import time
 
+
+def WS(r1,r2):
+        sum_ = 0
+        ranks_x = np.argsort(r1)
+        ranks_y = np.argsort(r2)
+        for i in range(len(r1)):
+            sum_ += (1/(2**(ranks_x[i]))) * ((np.abs(ranks_x[i] - ranks_y[i]))/(np.max([np.abs(1-ranks_x[i]), np.abs(len(r1) - ranks_x[i])])))
+        return 1 - sum_
 
 def generate_csv(dataset, save_dir='./', split='train', self_loops=False):
     X_train, y_train, _, _ = load_dataset(dataset, split)
@@ -38,37 +49,47 @@ def load_data(filename, in_dir='./', dtype='dataframe'):
     else:
         return np.matrix(df.values)
 def to_numpy_matrix(Y, self_loops=False):
-    Y = np.array(Y)
-    num_labels = Y.shape[1]
+    '''num_labels = Y.shape[1]
     freqs = np.matrix(np.zeros(shape=(num_labels, num_labels), dtype=np.int32))
     for label in Y:
         l = np.matrix(label)
         a = np.matmul(np.transpose(l), l, dtype=np.int32)
-        freqs = np.add(freqs, a)
+        freqs = np.add(freqs, a)'''
+    t = np.transpose(Y)
+    freqs = t@Y
     if not self_loops:    
-        freqs = np.asarray(freqs)
         np.fill_diagonal(freqs, 0)
     #freqs = np.matrix(freqs)
-    return np.asarray(freqs)
+    return freqs
+
+def w(r):
+    if r < 2:
+        return r
+    else:
+        return 0
+
+def subset_accuracy(y_true, y_pred):
+    N, l = y_true.shape
+    accuracy = 0
+    for i in range(N):
+        and_sum = 0
+        or_sum = 0
+        for j in range(l):
+            if y_true[i][j] == y_pred[i][j]:
+                and_sum += 1
+            if y_true[i][j] == 1 or y_pred[i][j] == 1:
+                or_sum += 1
+        if or_sum == 0:
+            accuracy += 0
+        else:
+            accuracy += and_sum / or_sum
+    return accuracy / N
 
 def recip_rank(mat):
     num_labels = len(mat)
     ranks = np.flip(np.argsort(mat), axis=1)
     ranks = np.delete(ranks, [np.argwhere(i == ranks[i]).flatten()[0]+i*num_labels for i in range(num_labels)]).reshape(num_labels,num_labels-1)
     return np.argsort([1/np.sum(1/(np.argwhere(ranks==i)[:, 1] + 1)) for i in range(num_labels)])
-    '''ranks = []
-    for i, row in enumerate(mat):
-        row_ = np.array(row)[0]
-        ranking = np.flip(np.argsort(row_))
-        ranking = np.delete(ranking, np.argwhere(ranking == i))
-        ranks.append(ranking)
-
-    f_ranks = np.zeros(num_labels)
-    for rank in ranks:
-        for i, r in enumerate(rank):
-            f_ranks[r] += 1/(i+1)
-    f_ranks = 1 / f_ranks
-    return np.argsort(f_ranks)'''
 
 def add_to_pretrain(X, y, sample, label, size):
     if len(X) < size:
