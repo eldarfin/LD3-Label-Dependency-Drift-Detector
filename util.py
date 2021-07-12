@@ -1,13 +1,51 @@
-import numpy as np 
+import numpy as np
+from numpy.lib.function_base import average 
 import pandas as pd 
 from ast import literal_eval
 from scipy.spatial import distance
 from skmultilearn.dataset import load_dataset
+from sklearn.metrics import f1_score
+from sklearn import metrics
 import matplotlib.pyplot as plt
 import operator
 import scipy
 import time
 
+
+def induce_drift(X, Y, start, end, num_labels, num_features, percentage=10):
+    for i in range(len(Y)):
+        #indexes = []
+        if i >= start and i < end:
+            #index = np.random.randint(0, num_labels)
+            two_change = np.random.randint(0, 2) == 1
+            '''while Y[i][index] != 0:
+                index = np.random.randint(0, num_labels)
+            #indexes.append(index)'''
+            Y[i][0] = 1
+
+            if two_change:
+                '''index = np.random.randint(0, num_labels)
+                while Y[i][index] != 0:
+                    index = np.random.randint(0, num_labels)
+                #indexes.append(index)'''
+                Y[i][1] = 1
+
+    num_changes = num_features // percentage
+    for i in range(len(X)):
+        indexes = []
+        if i >= start and i < end:
+            for j in range(num_changes):
+                '''index = np.random.randint(0, num_features)
+                while X[i][index] != 0 and index not in indexes:
+                    index = np.random.randint(0, num_labels)
+                indexes.append(index)'''
+                if X[i][j] == 0:
+                    X[i][j] = 1
+                else:
+                    X[i][j] = 0
+
+        
+    return X, Y
 
 def WS(r1,r2):
         sum_ = 0
@@ -68,27 +106,57 @@ def w(r):
     else:
         return 0
 
-def subset_accuracy(y_true, y_pred):
-    N, l = y_true.shape
-    accuracy = 0
+def accuracy_example(y_true, y_pred):
+    N = len(y_true)
+    sum_ = 0
     for i in range(N):
-        and_sum = 0
-        or_sum = 0
-        for j in range(l):
-            if y_true[i][j] == y_pred[i][j]:
-                and_sum += 1
-            if y_true[i][j] == 1 or y_pred[i][j] == 1:
-                or_sum += 1
-        if or_sum == 0:
-            accuracy += 0
-        else:
-            accuracy += and_sum / or_sum
-    return accuracy / N
+        nom = np.logical_and(y_true[i], y_pred[i]).sum()
+        denom = np.logical_or(y_true[i], y_pred[i]).sum()
+        sum_ += nom/denom
 
-def recip_rank(mat):
+    return sum_ / N
+
+def hamming_loss(y_true, y_pred):
+    return metrics.hamming_loss(y_true, y_pred)
+
+def f1_example(y_true, y_pred):
+    p = precision_example(y_true, y_pred)
+    r = recall_example(y_true, y_pred)
+
+    return (p * r) / ((2 * p) + r)
+
+def f1_micro(y_true, y_pred):
+    return f1_score(y_true, y_pred, average='micro')
+
+def f1_macro(y_true, y_pred):
+    return f1_score(y_true, y_pred, average='macro')
+
+
+def precision_example(y_true, y_pred):
+    N = len(y_true)
+    sum_ = 0
+    for i in range(N):
+        nom = np.logical_and(y_true[i], y_pred[i]).sum()
+        denom = len(y_pred[i])
+        sum_ += nom/denom
+    
+    return sum_ / N
+
+def recall_example(y_true, y_pred):
+    N = len(y_true)
+    sum_ = 0
+    for i in range(N):
+        nom = np.logical_and(y_true[i], y_pred[i]).sum()
+        denom = len(y_true[i])
+        sum_ += nom/denom
+    
+    return sum_ / N
+
+def recip_rank(mat, self_loops=False):
     num_labels = len(mat)
     ranks = np.flip(np.argsort(mat), axis=1)
-    ranks = np.delete(ranks, [np.argwhere(i == ranks[i]).flatten()[0]+i*num_labels for i in range(num_labels)]).reshape(num_labels,num_labels-1)
+    if not self_loops:
+        ranks = np.delete(ranks, [np.argwhere(i == ranks[i]).flatten()[0]+i*num_labels for i in range(num_labels)]).reshape(num_labels,num_labels-1)
     return np.argsort([1/np.sum(1/(np.argwhere(ranks==i)[:, 1] + 1)) for i in range(num_labels)])
 
 def add_to_pretrain(X, y, sample, label, size):

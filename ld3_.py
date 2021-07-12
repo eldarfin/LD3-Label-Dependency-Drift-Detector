@@ -1,5 +1,6 @@
 import numpy as np
 from numpy.core.numeric import correlate
+from numpy.random import sample
 import util
 from scipy import stats
 from river.base import DriftDetector
@@ -7,10 +8,11 @@ from scipy.spatial import distance
 from sklearn.neighbors import KernelDensity
 import matplotlib.pyplot as plt
 import time
+from skmultiflow.data import DataStream, MultilabelGenerator, ConceptDriftStream
 
 
 class LD3(DriftDetector):
-    def __init__(self, k=2, window_size = 250, correlation_thresh=0.05, bandwith=0.1, max_window_size=1000, correlation_coeff=5):
+    def __init__(self, k=2, window_size = 250, correlation_thresh=0.05, bandwith=0.1, max_window_size=1000, float_decimal=3):
         super().__init__()
         self.k = k
         self.window_size = window_size
@@ -18,7 +20,7 @@ class LD3(DriftDetector):
         self.initial_window_size = window_size
         self.w1 = Window(max_size=window_size)
         self.w2 = Window(max_size=window_size)
-        self.w3 = Window(max_size=window_size)
+        self.w3 = Window(max_size=window_size*5)
         self.model = KernelDensity(bandwidth=bandwith, kernel='gaussian')
         self.warmup = True
         self.warmup_count = window_size * 2
@@ -30,14 +32,14 @@ class LD3(DriftDetector):
         self.count = 0
         self.max_dist = 0
         self.prev_correlation = None
-        self.correlation_coeff = correlation_coeff
+        self.float_decimal = float_decimal
         self.average_correlation = None
 
     def update(self, value):
         self.insert_element(value.flatten())
         if not self.warmup:
-            self.r1 = util.recip_rank(util.to_numpy_matrix(self.w1.get_window, self_loops=False))
-            self.r2 = util.recip_rank(util.to_numpy_matrix(self.w2.get_window, self_loops=False))
+            self.r1 = util.recip_rank(util.to_numpy_matrix(self.w1.get_window, self_loops=False), self_loops=False)
+            self.r2 = util.recip_rank(util.to_numpy_matrix(self.w2.get_window, self_loops=False), self_loops=False)
 
 
             drift, warning = False, False
@@ -47,13 +49,16 @@ class LD3(DriftDetector):
             if self.w3.len < self.window_size:
                 return False, False, 0, 0
 
-            self.model.fit((self.w3.get_window).reshape((self.w3.len, 1)))
+            try:
+                self.model.fit((self.w3.get_window).reshape((self.w3.len, 1)))
+            except:
+                return False, False, 0, 0
             '''if self.average_correlation == None:
                 self.average_correlation = correlation
             else:
                 self.average_correlation = 0.875 * self.average_correlation + 0.125 * correlation'''
 
-            score = np.exp(self.model.score([[correlation]]))
+            score = np.round(np.exp(self.model.score([[correlation]])), decimals=self.float_decimal)
             if  score < self.correlation_thresh: #correlation < self.correlation_thresh: 
                 drift = True
                 warning = True
@@ -67,9 +72,9 @@ class LD3(DriftDetector):
                 probabilities = self.model.score_samples(values)
                 probabilities = np.exp(probabilities)
                 # plot the histogram and pdf
-                plt.hist(self.w3.get_window, bins=36, density=True)
+                '''plt.hist(self.w3.get_window, bins=36, density=True)
                 plt.plot(values[:], probabilities)
-                plt.show()
+                plt.show()'''
                 self.clear_windows()
                 #self.increase_windows(self.window_size*2)
                 self.warmup_counter(warmup_count=self.window_size*2)
@@ -208,3 +213,73 @@ class Window():
     @property 
     def len(self):
         return len(self.window)
+
+class StreamGenerator():
+    def __init__(self):
+        pass
+
+    def get_stream(self, type):
+        sample_size = 0
+        stream = None
+        n_features = 0
+        n_targets = 0
+        if type == 'sudden1':
+            n_features = 100
+            n_targets = 20
+            s1 = MultilabelGenerator(n_samples=6000, n_features=n_features, n_targets=n_targets, n_labels=2, random_state=100) #100
+            s2 = MultilabelGenerator(n_samples=6009, n_features=n_features, n_targets=n_targets, n_labels=4, random_state=250)
+            stream = ConceptDriftStream(stream=s1, drift_stream=s2, position=4000, width=1, random_state=0)
+            sample_size=10000
+        elif type == 'gradual1':
+            n_features = 100
+            n_targets = 20
+            s1 = MultilabelGenerator(n_samples=6000, n_features=n_features, n_targets=n_targets, n_labels=2, random_state=100) #100
+            s2 = MultilabelGenerator(n_samples=6015, n_features=n_features, n_targets=n_targets, n_labels=4, random_state=250)
+            stream = ConceptDriftStream(stream=s1, drift_stream=s2, position=4000, width=100, random_state=0)
+            sample_size=10000
+        elif type == 'sudden2':
+            n_features = 100
+            n_targets = 20
+            s1 = MultilabelGenerator(n_samples=6000, n_features=n_features, n_targets=n_targets, n_labels=1, random_state=100) #100
+            s2 = MultilabelGenerator(n_samples=6009, n_features=n_features, n_targets=n_targets, n_labels=2, random_state=250)
+            s3 = MultilabelGenerator(n_samples=10009, n_features=n_features, n_targets=n_targets, n_labels=1, random_state=0)
+            stream1 = ConceptDriftStream(stream=s1, drift_stream=s2, position=4000, width=1, random_state=0)
+            stream = ConceptDriftStream(stream=stream1, drift_stream=s3, position=10000, width=1, random_state=0)
+            sample_size=20000
+        elif type == 'sudden3':
+            n_features = 100
+            n_targets = 50
+            s1 = MultilabelGenerator(n_samples=8000, n_features=n_features, n_targets=n_targets, n_labels=1, random_state=100) #100
+            s2 = MultilabelGenerator(n_samples=9009, n_features=n_features, n_targets=n_targets, n_labels=2, random_state=250)
+            stream = ConceptDriftStream(stream=s1, drift_stream=s2, position=6000, width=1, random_state=0)
+            sample_size=15000
+        elif type == 'mixed':
+            n_features = 100
+            n_targets = 50
+            s1 = MultilabelGenerator(n_samples=25000, n_features=n_features, n_targets=n_targets, n_labels=1, random_state=100) #100
+            s2 = MultilabelGenerator(n_samples=25009, n_features=n_features, n_targets=n_targets, n_labels=2, random_state=250)
+            s3 = MultilabelGenerator(n_samples=25015, n_features=n_features, n_targets=n_targets, n_labels=3, random_state=0)
+            s4 = MultilabelGenerator(n_samples=25015, n_features=n_features, n_targets=n_targets, n_labels=2, random_state=100)
+            s5 = MultilabelGenerator(n_samples=25009, n_features=n_features, n_targets=n_targets, n_labels=1, random_state=250)
+            stream1 = ConceptDriftStream(stream=s1, drift_stream=s2, position=20000, width=1, random_state=0)
+            stream2 = ConceptDriftStream(stream=stream1, drift_stream=s3, position=40000, width=100, random_state=0)
+            stream3 = ConceptDriftStream(stream=stream2, drift_stream=s4, position=60000, width=100, random_state=0)
+            stream = ConceptDriftStream(stream=stream3, drift_stream=s5, position=80000, width=1, random_state=0)
+            sample_size=100000
+        elif type == 'gradual2':
+            n_features = 100
+            n_targets = 20
+            s1 = MultilabelGenerator(n_samples=6000, n_features=n_features, n_targets=n_targets, n_labels=1, random_state=50) #100
+            s2 = MultilabelGenerator(n_samples=8015, n_features=n_features, n_targets=n_targets, n_labels=2, random_state=250)
+            s3 = MultilabelGenerator(n_samples=15015, n_features=n_features, n_targets=n_targets, n_labels=1, random_state=0)
+            stream1 = ConceptDriftStream(stream=s1, drift_stream=s2, position=4000, width=100, random_state=0)
+            stream = ConceptDriftStream(stream=stream1, drift_stream=s3, position=10000, width=100, random_state=0)
+            sample_size=15000
+        elif type == 'gradual3':
+            n_features = 100
+            n_targets = 50
+            s1 = MultilabelGenerator(n_samples=8000, n_features=n_features, n_targets=n_targets, n_labels=1, random_state=100) #100
+            s2 = MultilabelGenerator(n_samples=9015, n_features=n_features, n_targets=n_targets, n_labels=2, random_state=250)
+            stream = ConceptDriftStream(stream=s1, drift_stream=s2, position=6000, width=100, random_state=0)
+            sample_size=15000
+        return stream, sample_size, n_features, n_targets
