@@ -12,6 +12,24 @@ import scipy
 import time
 
 
+def find_anomalies(data, coeff=3):
+    #define a list to accumlate anomalies
+    anomalies = []
+    
+    # Set upper and lower limit to 3 standard deviation
+    random_data_std = np.std(data)
+    random_data_mean = np.mean(data)
+    anomaly_cut_off = random_data_std * coeff
+    
+    lower_limit  = random_data_mean - anomaly_cut_off 
+    upper_limit = random_data_mean + anomaly_cut_off
+    #print(lower_limit)
+    # Generate outliers
+    for outlier in data:
+        if outlier < lower_limit: # or outlier > upper_limit:
+            anomalies.append(outlier)
+    return anomalies
+
 def induce_drift(X, Y, start, end, num_labels, num_features, percentage=10):
     for i in range(len(Y)):
         #indexes = []
