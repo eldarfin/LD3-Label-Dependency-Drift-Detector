@@ -1,1 +1,13 @@
-./datasets
+./figures
+./outputs
+./Results
+./.ipynb_checkpoints
+./__pycache__
+./ld3_.py
+./nemenyi.ipynb
+./main.py 
+./test.py 
+./plotting.py
+./tornados.zip
+./Experiments.ipynb 
+./benchmark.py
